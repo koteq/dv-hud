@@ -12,7 +12,8 @@ concurrency:
 
 env:
   PROJECT_NAME: HeadsUpDisplay
-  BUILD_PATH: bin/Release/netstandard2.0
+  BUILD_CFG: Release
+  BUILD_PATH: bin/${{ env.BUILD_CFG }}/netstandard2.0
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
@@ -30,7 +31,7 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore "${{ env.PROJECT_NAME }}.csproj"
     - name: Build
-      run: dotnet build --no-restore "${{ env.PROJECT_NAME }}.csproj"
+      run: dotnet build --configuration ${{ BUILD_CFG }} --no-restore "${{ env.PROJECT_NAME }}.csproj"
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -38,3 +39,21 @@ jobs:
         path: |
           info.json
           "${{ env.BUILD_PATH }}/*.dll"
+
+release:
+    if: contains(github.ref, 'tags/v')
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+      - name: List Artifacts
+        run: ls -R
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          prerelease: true
+          files: |
+            */*.json
+            */*.dll
