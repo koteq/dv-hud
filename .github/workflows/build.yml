@@ -55,5 +55,5 @@ jobs:
         with:
           prerelease: true
           files: |
-            */*.json
+            */info.json
             */*.dll
