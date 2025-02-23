@@ -12,25 +12,88 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="RedworkDE.Publicizer" Version="0.2.2" />
+    <!-- <PackageReference Include="RedworkDE.Publicizer" Version="0.2.2" />
     <PublicizeAssembly Include="Assembly-CSharp" Private="True" Readonly="True" />
-    <PublicizeAssembly Include="DV.BrakeSystem" Private="True" Readonly="True" />
-    <Reference Include="Assembly-CSharp" />
-    <Reference Include="0Harmony" />
-    <Reference Include="BezierCurves" />
-    <Reference Include="DV.BrakeSystem" />
-    <Reference Include="DV.PointSet" />
-    <Reference Include="DV.Utils" />
-    <Reference Include="UnityEngine" />
-    <Reference Include="UnityEngine.CoreModule" />
-    <Reference Include="UnityEngine.IMGUIModule" />
-    <Reference Include="UnityEngine.PhysicsModule" />
-    <Reference Include="UnityEngine.TextRenderingModule" />
-    <Reference Include="UnityModManager" />
-    <Reference Include="net.smkd.vector3d" />
+    <PublicizeAssembly Include="DV.BrakeSystem" Private="True" Readonly="True" /> -->
+    <Reference Include="Assembly-CSharp">
+      <HintPath>lib/Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>lib/0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="BezierCurves">
+      <HintPath>lib/BezierCurves.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="DV.BrakeSystem">
+      <HintPath>lib/DV.BrakeSystem.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="DV.PointSet">
+      <HintPath>lib/DV.PointSet.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="DV.Simulation">
+      <HintPath>lib/DV.Simulation.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="DV.ThingTypes">
+      <HintPath>lib/DV.ThingTypes.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="DV.UI">
+      <HintPath>lib/DV.UI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="DV.UIFramework">
+      <HintPath>lib/DV.UIFramework.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="DV.Utils">
+      <HintPath>lib/DV.Utils.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>lib/UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>lib/UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>lib/UnityEngine.IMGUIModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>lib/UnityEngine.PhysicsModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>lib/UnityEngine.PhysicsModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>lib/UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityModManager">
+      <HintPath>lib/UnityModManager.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="net.smkd.vector3d">
+      <HintPath>lib/net.smkd.vector3d.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>lib/Newtonsoft.Json.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\QuantitiesNet\QuantitiesNet\QuantitiesNet.csproj" />
+    <ProjectReference Include=".submodules\QuantitiesNet\QuantitiesNet.csproj" />
   </ItemGroup>
 </Project>

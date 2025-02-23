@@ -1,111 +1,99 @@
-using DV;
+using DV.Wheels;
 using HarmonyLib;
+using LocoSim.Implementations;
 using QuantitiesNet;
 using static QuantitiesNet.Quantities;
 using static QuantitiesNet.Units;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using UnityModManagerNet;
 
 namespace DvMod.HeadsUpDisplay
 {
     internal static class LocoProviders
     {
-        public static QuantityPushProvider<Dimensions.Force> tractiveEffortProvider =
-            new QuantityPushProvider<Dimensions.Force>("Tractive effort");
-
         public static QuantityPushProvider<Dimensions.Force> adhesionProvider =
             new QuantityPushProvider<Dimensions.Force>("Adhesion");
 
-        public static QuantityPushProvider<Dimensions.Power> indicatedPowerProvider =
-            new QuantityPushProvider<Dimensions.Power>("Power");
-
         public static void Register()
         {
-            Registry.Register(tractiveEffortProvider);
+            Registry.Register(new QuantityQueryDataProvider<Dimensions.Force>(
+                "Tractive effort",
+                car => new Force(car.SimController.drivingForce.generatedForce, Newton)));
             Registry.Register(adhesionProvider);
-            Registry.Register(indicatedPowerProvider);
+            Registry.Register(new QuantityQueryDataProvider<Dimensions.Power>(
+                "Power",
+                car => new Force(car.SimController.drivingForce.generatedForce, Newton) * new Velocity(car.GetForwardSpeed(), KilometersPerHour)));
             Registry.Register(new FloatQueryDataProvider(
                 "Slip",
-                car => car.GetComponent<DrivingForce>()?.wheelslip,
+                car => car.SimController.wheelslipController.wheelslip,
                 f => $"{f:P1}"));
 
-            SteamLocoProviders.Register();
+            // SteamLocoProviders.Register();
         }
 
-        [HarmonyPatch]
-        public static class GetTractionForcePatch
-        {
-            public static void Postfix(LocoControllerBase __instance, float __result)
-            {
-                if (!AppUtil.IsPaused)
-                {
-                    tractiveEffortProvider.SetValue(__instance.train, new Force(__result, Newton));
-                    indicatedPowerProvider.SetValue(__instance.train, new Force(__result, Newton) * new Velocity(__instance.GetSpeedKmH(), KilometersPerHour));
-                }
-            }
+        //     public static IEnumerable<MethodBase> TargetMethods()
+        //     {
+        //         yield return AccessTools.Method(typeof(LocoControllerDiesel), nameof(LocoControllerBase.GetTractionForce));
+        //         yield return AccessTools.Method(typeof(LocoControllerShunter), nameof(LocoControllerBase.GetTractionForce));
+        //         yield return AccessTools.Method(typeof(LocoControllerSteam), nameof(LocoControllerBase.GetTractionForce));
+        //         if (UnityModManager.FindMod("DVCustomCarLoader")?.Assembly is Assembly assembly)
+        //         {
+        //             var typeNames = new string[]
+        //             {
+        //                 "DieselElectric.CustomLocoControllerDiesel",
+        //                 "Steam.CustomLocoControllerSteam",
+        //             };
+        //             var methods = typeNames
+        //                 .Select(n => assembly.GetType($"DVCustomCarLoader.LocoComponents.{n}"))
+        //                 .OfType<Type>()
+        //                 .Where(typeof(LocoControllerBase).IsAssignableFrom)
+        //                 .Select(t => t.GetMethod("GetTractionForce"))
+        //                 .OfType<MethodBase>();
+        //             foreach (var method in methods)
+        //                 yield return method;
+        //         }
+        //     }
+        // }
 
-            public static IEnumerable<MethodBase> TargetMethods()
-            {
-                yield return AccessTools.Method(typeof(LocoControllerDiesel), nameof(LocoControllerBase.GetTractionForce));
-                yield return AccessTools.Method(typeof(LocoControllerShunter), nameof(LocoControllerBase.GetTractionForce));
-                yield return AccessTools.Method(typeof(LocoControllerSteam), nameof(LocoControllerBase.GetTractionForce));
-                if (UnityModManager.FindMod("DVCustomCarLoader")?.Assembly is Assembly assembly)
-                {
-                    var typeNames = new string[]
-                    {
-                        "DieselElectric.CustomLocoControllerDiesel",
-                        "Steam.CustomLocoControllerSteam",
-                    };
-                    var methods = typeNames
-                        .Select(n => assembly.GetType($"DVCustomCarLoader.LocoComponents.{n}"))
-                        .OfType<Type>()
-                        .Where(typeof(LocoControllerBase).IsAssignableFrom)
-                        .Select(t => t.GetMethod("GetTractionForce"))
-                        .OfType<MethodBase>();
-                    foreach (var method in methods)
-                        yield return method;
-                }
-            }
-        }
-
-        [HarmonyPatch(typeof(DrivingForce), "UpdateWheelslip")]
+        [HarmonyPatch(typeof(WheelslipController), "UpdateWheelslip")]
         public static class UpdateWheelslipPatch
         {
-            public static void Postfix(DrivingForce __instance, Bogie bogie)
+            public static void Prefix(TrainCar ___car, Port ___numberOfPoweredAxlesPort, float adhesionForceLimitPerAxle, bool wheelsliding, float deltaTime)
             {
-                var car = bogie.Car;
-                adhesionProvider.SetValue(car, new Force(__instance.tractionForceWheelslipLimit * car.Bogies.Length));
+                adhesionProvider.SetValue(___car, new Force(adhesionForceLimitPerAxle * ___numberOfPoweredAxlesPort?.Value ?? 2));
             }
         }
     }
 
-    internal static class SteamLocoProviders
-    {
-        public static FloatPushProvider cutoffProvider = new FloatPushProvider("Cutoff", f => $"{f:P0}");
+    // internal static class SteamLocoProviders
+    // {
+    // public static FloatPushProvider cutoffProvider = new FloatPushProvider("Cutoff", f => $"{f:P0}");
 
-        public static void Register()
-        {
-            Registry.Register(new QuantityQueryDataProvider<Dimensions.Pressure>("Boiler pressure", car =>
-                {
-                    var sim = car.GetComponent<SteamLocoSimulation>();
-                    if (sim == null)
-                        return null;
-                    return new Pressure(sim.boilerPressure.value, Bar);
-                }));
-            Registry.Register(cutoffProvider);
-        }
+    // public static void Register()
+    // {
+    // Registry.Register(new QuantityQueryDataProvider<Dimensions.Pressure>("Boiler pressure", car =>
+    //     {
+    //         var boiler = car.SimController.GetComponentInChildren<LocoSim.Implementations.Boiler>();
+    //         if (boiler == null)
+    //             return null;
+    //         var pressure = boiler.GetSaveStateData().GetDouble("pressure");
+    //         if (!pressure.HasValue)
+    //             return null;
+    //         return new Pressure(pressure.Value, Bar);
+    //     }));
+    // Registry.Register(cutoffProvider);
+    // Registry.Register(new FloatQueryDataProvider(
+    //     "Cutoff",
+    //     car => (car.SimController.controlsOverrider?.Reverser?.Value - ReverserControl.NEUTRAL_VALUE) * 2,
+    //     f => $"{f:P1}"));
+    // }
 
-        [HarmonyPatch(typeof(SteamLocoSimulation), "SimulateTick")]
-        public static class SimulateTickPatch
-        {
-            public static bool Prefix(SteamLocoSimulation __instance)
-            {
-                cutoffProvider.SetValue(TrainCar.Resolve(__instance.gameObject), __instance.cutoff.value);
-                return true;
-            }
-        }
-    }
+    // [HarmonyPatch(typeof(LocoSim.Implementations.ReciprocatingSteamEngine), "Tick")]
+    // public static class TickPatch
+    // {
+    //     public static bool Postfix(float ___cutoff)
+    //     {
+    //         cutoffProvider.SetValue(TrainCar.Resolve(__instance.gameObject), ___cutoff);
+    //         return true;
+    //     }
+    // }
+    // }
 }

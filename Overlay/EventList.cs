@@ -1,9 +1,11 @@
-using DV.Logic.Job;
-using QuantitiesNet;
-using static QuantitiesNet.Units;
 using System;
 using System.Linq;
+using DV.Logic.Job;
+using DV.Simulation.Controllers;
+using DV.Utils;
+using QuantitiesNet;
 using UnityEngine;
+using static QuantitiesNet.Units;
 
 namespace DvMod.HeadsUpDisplay
 {
@@ -41,8 +43,9 @@ namespace DvMod.HeadsUpDisplay
             if (track == null)
                 return;
             var startSpan = bogie.traveller.Span;
-            var locoDirection = PlayerManager.LastLoco == null || PlayerManager.LastLoco.GetComponent<LocoControllerBase>()?.reverser >= 0f;
-            var direction = !locoDirection ^ (bogie.trackDirection > 0);
+            var controlsOverrider = PlayerManager.LastLoco?.SimController.controlsOverrider;
+            var locoDirection = controlsOverrider?.Reverser?.Value >= ReverserControl.NEUTRAL_VALUE;
+            var direction = locoDirection == (bogie.TrackDirectionSign > 0);
             var currentGrade = TrackIndexer.Grade(bogie.point1) * (direction ? 1 : -1);
 
             var events = TrackFollower.FollowTrack(
