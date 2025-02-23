@@ -13,7 +13,7 @@ concurrency:
 env:
   PROJECT_NAME: HeadsUpDisplay
   BUILD_CFG: Release
-  BUILD_PATH: bin/${{ env.BUILD_CFG }}/netstandard2.0
+  BUILD_PATH: bin
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
@@ -38,7 +38,7 @@ jobs:
         name: ${{ env.PROJECT_NAME }}
         path: |
           info.json
-          "${{ env.BUILD_PATH }}/*.dll"
+          ${{ env.BUILD_PATH }}
 
 release:
     if: contains(github.ref, 'tags/v')
