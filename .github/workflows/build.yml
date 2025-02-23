@@ -1,0 +1,38 @@
+# This workflow builds a .NET project
+# See: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: Build
+
+on:
+  push:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PROJECT_NAME: HeadsUpDisplay
+  BUILD_PATH: bin/Release/netstandard2.0
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    - name: Restore dependencies
+      run: dotnet restore "${{ env.PROJECT_NAME }}.csproj"
+    - name: Build
+      run: dotnet build --no-restore "${{ env.PROJECT_NAME }}.csproj"
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.PROJECT_NAME }}
+        path: |
+          info.json
+          "${{ env.BUILD_PATH }}/*.dll"
