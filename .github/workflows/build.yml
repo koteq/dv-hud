@@ -1,0 +1,48 @@
+# This workflow builds a .NET project
+# See: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: Build
+
+on:
+  push:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PROJECT_NAME: HeadsUpDisplay
+  BUILD_CFG: Release
+  BUILD_PATH: bin
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    - name: Restore dependencies
+      run: dotnet restore "${{ env.PROJECT_NAME }}.csproj"
+    - name: Build
+      run: dotnet build --configuration ${{ env.BUILD_CFG }} --no-restore "${{ env.PROJECT_NAME }}.csproj"
+    - name: Pack
+      id: pack
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        VERSION=$(jq -r .Version info.json)
+        ZIPFILE="${{ env.PROJECT_NAME }}-${VERSION}.zip"
+        zip -j "$ZIPFILE" info.json bin/*/*/*.dll
+        echo "zipfile=${ZIPFILE}" >> "$GITHUB_OUTPUT"
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        prerelease: true
+        files: "${{ steps.pack.outputs.zipfile }}"
